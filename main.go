@@ -79,13 +79,13 @@ func run() error {
 	if err != nil {
 		return errors.Wrap(err, "creating old db")
 	}
-	oldDB.Close()
+	defer oldDB.Close()
 
 	newDB, err := createDBFromConfig(config.Database.NewPath, config.Database.NewCompression)
 	if err != nil {
 		return errors.Wrap(err, "creating new db")
 	}
-	oldDB.Close()
+	defer oldDB.Close()
 
 	if config.Migration.TickData {
 		err = migration.MigrateTickData(oldDB, newDB)
