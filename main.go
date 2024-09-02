@@ -74,17 +74,18 @@ func run() error {
 
 	println("Migrator started")
 
-	fmt.Printf("")
-
+	println("")
 	oldDB, err := createDBFromConfig(config.Database.OldPath, config.Database.OldCompression)
 	if err != nil {
 		return errors.Wrap(err, "creating old db")
 	}
+	oldDB.Close()
 
 	newDB, err := createDBFromConfig(config.Database.NewPath, config.Database.NewCompression)
 	if err != nil {
 		return errors.Wrap(err, "creating new db")
 	}
+	oldDB.Close()
 
 	if config.Migration.TickData {
 		err = migration.MigrateTickData(oldDB, newDB)
