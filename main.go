@@ -85,7 +85,7 @@ func run() error {
 	if err != nil {
 		return errors.Wrap(err, "creating new db")
 	}
-	defer oldDB.Close()
+	defer newDB.Close()
 
 	if config.Migration.TickData {
 		err = migration.MigrateTickData(oldDB, newDB)
