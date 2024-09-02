@@ -32,13 +32,13 @@ func run() error {
 			IdentityTransferTransactions bool `conf:"default:true"`
 			ChainDigest                  bool `conf:"default:true"`
 			ProcessedTickIntervals       bool `conf:"default:true"`
-			TransactionStatus            bool `conf:"default:true"`
+			TickTransactionStatus        bool `conf:"default:true"`
 			StoreDigest                  bool `conf:"default:true"`
 			EmptyTicksPerEpoch           bool `conf:"default:true"`
 		}
 		Database struct {
-			OldPath string `conf:"default:./storage/old"`
-			//OldPath        string `conf:"default:/home/linckode/data/Projects/qubic/DB/storage/old"`
+			//OldPath string `conf:"default:./storage/old"`
+			OldPath        string `conf:"default:/home/linckode/data/Projects/qubic/DB/storage/old"`
 			OldCompression string `conf:"default:Snappy"`
 
 			NewPath        string `conf:"default:./storage/new/zstd"`
@@ -74,7 +74,6 @@ func run() error {
 
 	println("Migrator started")
 
-	println("")
 	oldDB, err := createDBFromConfig(config.Database.OldPath, config.Database.OldCompression)
 	if err != nil {
 		return errors.Wrap(err, "creating old db")
@@ -88,6 +87,8 @@ func run() error {
 	defer newDB.Close()
 
 	if config.Migration.TickData {
+		println("Migrating tick data...")
+
 		err = migration.MigrateTickData(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating tick data")
@@ -95,6 +96,8 @@ func run() error {
 	}
 
 	if config.Migration.QuorumData {
+		println("Migrating quorum data...")
+
 		err = migration.MigrateQuorumData(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating quorum data")
@@ -102,6 +105,8 @@ func run() error {
 	}
 
 	if config.Migration.ComputorList {
+		println("Migrating computor list...")
+
 		err = migration.MigrateComputorList(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating computor list")
@@ -109,6 +114,8 @@ func run() error {
 	}
 
 	if config.Migration.Transactions {
+		println("Migrating transactions...")
+
 		err = migration.MigrateTransactions(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating transactions")
@@ -116,13 +123,8 @@ func run() error {
 	}
 
 	if config.Migration.LastProcessedTick {
-		err = migration.MigrateLastProcessedTick(oldDB, newDB)
-		if err != nil {
-			return errors.Wrap(err, "migrating last processed tick")
-		}
-	}
+		println("Migrating last processed tick...")
 
-	if config.Migration.LastProcessedTick {
 		err = migration.MigrateLastProcessedTick(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating last processed tick")
@@ -130,13 +132,17 @@ func run() error {
 	}
 
 	if config.Migration.LastProcessedTickPerEpoch {
-		err = migration.MigrateLastProcessedTickPerEpoch(oldDB, newDB)
+		println("Migrating last processed tick per epoch...")
+
+		err = migration.MigrateLastProcessedTicksPerEpoch(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating last processed tick per epoch")
 		}
 	}
 
 	if config.Migration.SkippedTicksInterval {
+		println("Migrating skipped ticks interval...")
+
 		err = migration.MigrateSkippedTicksIntervals(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating skipped ticks interval")
@@ -144,6 +150,8 @@ func run() error {
 	}
 
 	if config.Migration.IdentityTransferTransactions {
+		println("Migrating identity transfer transactions...")
+
 		err = migration.MigrateIdentityTransferTransactions(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating identity transfer transactions")
@@ -151,40 +159,51 @@ func run() error {
 	}
 
 	if config.Migration.ChainDigest {
-		err = migration.MigrateAllChainDigests(oldDB, newDB)
+		println("Migrating chain digest...")
+
+		err = migration.MigrateChainDigest(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating chain digest")
 		}
 	}
 
 	if config.Migration.ProcessedTickIntervals {
+		println("Migrating processed tick intervals...")
+
 		err = migration.MigrateProcessedTickIntervals(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating processed tick intervals")
 		}
 	}
 
-	if config.Migration.TransactionStatus {
-		err = migration.MigrateAllTransactionStatuses(oldDB, newDB)
+	if config.Migration.TickTransactionStatus {
+		println("Migrating transaction status...")
+
+		err = migration.MigrateTickTransactionsStatus(oldDB, newDB)
 		if err != nil {
-			return errors.Wrap(err, "migrating transactions status")
+			return errors.Wrap(err, "migrating transaction status")
 		}
 	}
 
 	if config.Migration.StoreDigest {
-		err = migration.MigrateAllStoreDigests(oldDB, newDB)
+		println("Migrating store digest...")
+
+		err = migration.MigrateStoreDigest(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating store digest")
 		}
 	}
 
 	if config.Migration.EmptyTicksPerEpoch {
-		err = migration.MigrateAllEmptyTicksPerEpoch(oldDB, newDB)
+		println("Migrating empty ticks per epoch...")
+
+		err = migration.MigrateEmptyTicksPerEpoch(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating empty ticks per epoch")
 		}
 	}
 
+	println("Migration done.")
 	return nil
 }
 
