@@ -36,9 +36,12 @@ func run() error {
 			StoreDigest                  bool `conf:"default:true"`
 			EmptyTicksPerEpoch           bool `conf:"default:true"`
 		}
+		Options struct {
+			MigrateQuorumDataToV2 bool `conf:"default:true"`
+		}
 		Database struct {
-			//OldPath string `conf:"default:./storage/old"`
-			OldPath        string `conf:"default:/home/linckode/data/Projects/qubic/DB/storage/old"`
+			OldPath string `conf:"default:./storage/old"`
+			//OldPath        string `conf:"default:/home/linckode/data/Projects/qubic/DB/storage/old"`
 			OldCompression string `conf:"default:Snappy"`
 
 			NewPath        string `conf:"default:./storage/new/zstd"`
@@ -98,10 +101,17 @@ func run() error {
 	if config.Migration.QuorumData {
 		println("Migrating quorum data...")
 
-		err = migration.MigrateQuorumData(oldDB, newDB)
-		if err != nil {
-			return errors.Wrap(err, "migrating quorum data")
+		if !config.Options.MigrateQuorumDataToV2 {
+			err = migration.MigrateQuorumData(oldDB, newDB)
+			if err != nil {
+				return errors.Wrap(err, "migrating quorum data")
+			}
 		}
+		err = migration.MigrateQuorumDataV2(oldDB, newDB)
+		if err != nil {
+			return errors.Wrap(err, "migrating quorum data to v2")
+		}
+
 	}
 
 	if config.Migration.ComputorList {

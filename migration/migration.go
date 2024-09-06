@@ -33,6 +33,19 @@ func MigrateQuorumData(from, to *pebble.DB) error {
 	return nil
 }
 
+func MigrateQuorumDataV2(from, to *pebble.DB) error {
+	settings := Settings{
+		LowerBound: []byte{store.QuorumData},
+		UpperBound: store.AssembleKey(store.QuorumData, store.UpperBoundUint),
+	}
+
+	err := migrateQuorumDataV2(from, to, settings)
+	if err != nil {
+		return errors.Wrap(err, "migrating quorum data")
+	}
+	return nil
+}
+
 func MigrateComputorList(from, to *pebble.DB) error {
 	settings := Settings{
 		LowerBound: []byte{store.ComputorList},
