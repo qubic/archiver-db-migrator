@@ -40,8 +40,7 @@ func run() error {
 			MigrateQuorumDataToV2 bool `conf:"default:true"`
 		}
 		Database struct {
-			OldPath string `conf:"default:./storage/old"`
-			//OldPath        string `conf:"default:/home/linckode/data/Projects/qubic/DB/storage/old"`
+			OldPath        string `conf:"default:./storage/old"`
 			OldCompression string `conf:"default:Snappy"`
 
 			NewPath        string `conf:"default:./storage/new/zstd"`
