@@ -98,13 +98,13 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 			return errors.Wrap(err, "unmarshalling quorum tick v1 data")
 		}
 
-		qtdV2 := protobuff.QuorumTickDataV2{
+		qtdV2 := protobuff.QuorumTickDataStored{
 			QuorumTickStructure:   qtd.QuorumTickStructure,
-			QuorumDiffPerComputor: make(map[uint32]*protobuff.QuorumDiffV2),
+			QuorumDiffPerComputor: make(map[uint32]*protobuff.QuorumDiffStored),
 		}
 
 		for id, diff := range qtd.QuorumDiffPerComputor {
-			qtdV2.QuorumDiffPerComputor[id] = &protobuff.QuorumDiffV2{
+			qtdV2.QuorumDiffPerComputor[id] = &protobuff.QuorumDiffStored{
 				ExpectedNextTickTxDigestHex: diff.ExpectedNextTickTxDigestHex,
 				SignatureHex:                diff.SignatureHex,
 			}
