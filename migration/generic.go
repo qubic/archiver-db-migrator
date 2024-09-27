@@ -4,6 +4,7 @@ import (
 	"github.com/cockroachdb/pebble"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/qubic/archiver-db-migrator/store"
 	"github.com/qubic/go-archiver/protobuff"
 	"runtime"
 )
@@ -80,6 +81,8 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 
 	counter := 0
 
+	lastEpochTickQuorumData := make(map[uint32]*protobuff.QuorumTickData)
+
 	batch := to.NewBatch()
 	defer batch.Close()
 
@@ -96,6 +99,10 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 		err = proto.Unmarshal(value, &qtd)
 		if err != nil {
 			return errors.Wrap(err, "unmarshalling quorum tick v1 data")
+		}
+
+		if lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch] == nil || lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch].QuorumTickStructure.TickNumber > qtd.QuorumTickStructure.TickNumber {
+			lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch] = &qtd
 		}
 
 		qtdV2 := protobuff.QuorumTickDataStored{
@@ -132,6 +139,20 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 			counter = 0
 		}
 
+	}
+
+	for epoch, lastTickQuorumTickData := range lastEpochTickQuorumData {
+		key := store.AssembleKey(store.LastTickQuorumDataPerEpoch, epoch)
+
+		marshalled, err := proto.Marshal(lastTickQuorumTickData)
+		if err != nil {
+			return errors.Wrapf(err, "marshalling epoch lastTick quorum data for epoch %d", epoch)
+		}
+
+		err = batch.Set(key, marshalled, nil)
+		if err != nil {
+			return errors.Wrap(err, "setting data in batch")
+		}
 	}
 
 	err = batch.Commit(pebble.Sync)

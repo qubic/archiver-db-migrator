@@ -21,6 +21,7 @@ const (
 	TransactionStatus            = 0x11
 	StoreDigest                  = 0x12
 	EmptyTicksPerEpoch           = 0x13
+	LastTickQuorumDataPerEpoch   = 0x14
 )
 
 type IDType interface {
