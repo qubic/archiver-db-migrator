@@ -9,7 +9,7 @@ import (
 	"runtime"
 )
 
-const maxArraySize = 10000
+const maxArraySize = 20000
 
 type Settings struct {
 	LowerBound []byte
@@ -101,7 +101,7 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 			return errors.Wrap(err, "unmarshalling quorum tick v1 data")
 		}
 
-		if lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch] == nil || lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch].QuorumTickStructure.TickNumber > qtd.QuorumTickStructure.TickNumber {
+		if lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch] == nil || qtd.QuorumTickStructure.TickNumber > lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch].QuorumTickStructure.TickNumber {
 			lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch] = &qtd
 		}
 
