@@ -18,6 +18,7 @@ The tool is also capable of migrating between Snappy (PebbleDB default) and Zstd
   --migration-quorum-data / $QUBIC_ARCHIVER_DB_MIGRATOR_MIGRATION_QUORUM_DATA                                        <bool>    (default: true)
   --migration-computor-list / $QUBIC_ARCHIVER_DB_MIGRATOR_MIGRATION_COMPUTOR_LIST                                    <bool>    (default: true)
   --migration-transactions / $QUBIC_ARCHIVER_DB_MIGRATOR_MIGRATION_TRANSACTIONS                                      <bool>    (default: true)
+  --migration-transaction-status / $QUBIC_ARCHIVER_DB_MIGRATOR_MIGRATION_TRANSACTION_STATUS                          <bool>    (default: true)
   --migration-last-processed-tick / $QUBIC_ARCHIVER_DB_MIGRATOR_MIGRATION_LAST_PROCESSED_TICK                        <bool>    (default: true)
   --migration-last-processed-tick-per-epoch / $QUBIC_ARCHIVER_DB_MIGRATOR_MIGRATION_LAST_PROCESSED_TICK_PER_EPOCH    <bool>    (default: true)
   --migration-skipped-ticks-interval / $QUBIC_ARCHIVER_DB_MIGRATOR_MIGRATION_SKIPPED_TICKS_INTERVAL                  <bool>    (default: true)
