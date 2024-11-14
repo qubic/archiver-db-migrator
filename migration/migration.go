@@ -205,3 +205,16 @@ func MigrateEmptyTicksPerEpoch(from, to *pebble.DB) error {
 
 	return nil
 }
+
+func MigrateTransactionStatus(from, to *pebble.DB) error {
+	settings := Settings{
+		LowerBound: []byte{store.TransactionStatus},
+		UpperBound: store.AssembleKey(store.TransactionStatus, store.UpperBoundTransaction),
+	}
+
+	err := MigrateData(from, to, settings)
+	if err != nil {
+		return errors.Wrap(err, "migrating transaction statuses")
+	}
+	return nil
+}

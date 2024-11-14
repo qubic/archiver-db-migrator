@@ -26,6 +26,7 @@ func run() error {
 			QuorumData                   bool `conf:"default:true"`
 			ComputorList                 bool `conf:"default:true"`
 			Transactions                 bool `conf:"default:true"`
+			TransactionStatus            bool `conf:"default:true"`
 			LastProcessedTick            bool `conf:"default:true"`
 			LastProcessedTickPerEpoch    bool `conf:"default:true"`
 			SkippedTicksInterval         bool `conf:"default:true"`
@@ -128,6 +129,15 @@ func run() error {
 		err = migration.MigrateTransactions(oldDB, newDB)
 		if err != nil {
 			return errors.Wrap(err, "migrating transactions")
+		}
+	}
+
+	if config.Migration.TransactionStatus {
+		println("Migrating transaction status...")
+
+		err = migration.MigrateTransactionStatus(oldDB, newDB)
+		if err != nil {
+			return errors.Wrap(err, "migrating transaction status")
 		}
 	}
 
