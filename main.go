@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qubic/archiver-db-migrator/migration"
 	"github.com/qubic/archiver-db-migrator/store"
+	"github.com/qubic/archiver-db-migrator/util"
 	"log"
 	"os"
 )
@@ -47,6 +48,10 @@ func run() error {
 			NewPath             string `conf:"default:./storage/new/zstd"`
 			NewCompression      string `conf:"default:Zstd"`
 			NewBetterCompaction bool   `conf:"default:false"`
+		}
+		Export struct {
+			ExportLastTickQuorumDataFromOldFormat bool `conf:"default:false"`
+			ImportLastTickQuorumDataFromNewFormat bool `conf:"default:false"`
 		}
 	}
 
@@ -89,6 +94,20 @@ func run() error {
 		return errors.Wrap(err, "creating new db")
 	}
 	defer newDB.Close()
+
+	if config.Export.ExportLastTickQuorumDataFromOldFormat {
+		err = util.ExportLastTickQuorumDataPerEpochInterval(oldDB, newDB)
+		if err != nil {
+			return errors.Wrap(err, "exporting last tick quorum data per epoch interval")
+		}
+	}
+
+	if config.Export.ImportLastTickQuorumDataFromNewFormat {
+		err = util.ImportLastTickDataPerEpochInterval(oldDB, newDB)
+		if err != nil {
+			return errors.Wrap(err, "importing last tick quorum data per epoch interval")
+		}
+	}
 
 	if config.Migration.TickData {
 		println("Migrating tick data...")

@@ -121,7 +121,7 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 
 		epochIntervals := intervalsPerEpoch[epoch]
 
-		intervalIndex := findIntervalIndexForTick(tickNumber, epochIntervals)
+		intervalIndex := FindIntervalIndexForTick(tickNumber, epochIntervals)
 		if intervalIndex == -1 {
 			return errors.New(fmt.Sprintf("could not find which interval tick %d belongs to", tickNumber))
 		}
@@ -194,7 +194,7 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 	return nil
 }
 
-func findIntervalIndexForTick(tickNumber uint32, intervals []*protobuff.ProcessedTickInterval) int {
+func FindIntervalIndexForTick(tickNumber uint32, intervals []*protobuff.ProcessedTickInterval) int {
 	for index, interval := range intervals {
 		if interval.InitialProcessedTick <= tickNumber && tickNumber <= interval.LastProcessedTick {
 			return index
