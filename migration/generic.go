@@ -1,11 +1,13 @@
 package migration
 
 import (
+	"fmt"
 	"github.com/cockroachdb/pebble"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/qubic/archiver-db-migrator/store"
 	"github.com/qubic/go-archiver/protobuff"
+	archivestore "github.com/qubic/go-archiver/store"
 	"runtime"
 )
 
@@ -23,7 +25,7 @@ func MigrateData(from, to *pebble.DB, settings Settings) error {
 		UpperBound: settings.UpperBound,
 	})
 	if err != nil {
-		errors.Wrap(err, "creating iter")
+		return errors.Wrap(err, "creating iter")
 	}
 	defer iter.Close()
 
@@ -75,13 +77,26 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 		UpperBound: settings.UpperBound,
 	})
 	if err != nil {
-		errors.Wrap(err, "creating iter")
+		return errors.Wrap(err, "creating iter")
 	}
 	defer iter.Close()
 
 	counter := 0
 
-	lastEpochTickQuorumData := make(map[uint32]*protobuff.QuorumTickData)
+	pebbleStore := archivestore.NewPebbleStore(from, nil)
+
+	processedIntervals, err := pebbleStore.GetProcessedTickIntervals(nil)
+	if err != nil {
+		return errors.Wrap(err, "reading epoch intervals from old database")
+	}
+
+	intervalsPerEpoch := make(map[uint32][]*protobuff.ProcessedTickInterval)
+
+	for _, intervals := range processedIntervals {
+		intervalsPerEpoch[intervals.Epoch] = intervals.Intervals
+	}
+
+	lastQuorumDataPerEpochIntervals := make(map[uint32]map[int32]*protobuff.QuorumTickData)
 
 	batch := to.NewBatch()
 	defer batch.Close()
@@ -101,8 +116,18 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 			return errors.Wrap(err, "unmarshalling quorum tick v1 data")
 		}
 
-		if lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch] == nil || qtd.QuorumTickStructure.TickNumber > lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch].QuorumTickStructure.TickNumber {
-			lastEpochTickQuorumData[qtd.QuorumTickStructure.Epoch] = &qtd
+		epoch := qtd.QuorumTickStructure.Epoch
+		tickNumber := qtd.QuorumTickStructure.TickNumber
+
+		epochIntervals := intervalsPerEpoch[epoch]
+
+		intervalIndex := findIntervalIndexForTick(tickNumber, epochIntervals)
+		if intervalIndex == -1 {
+			return errors.New(fmt.Sprintf("could not find which interval tick %d belongs to", tickNumber))
+		}
+
+		if lastQuorumDataPerEpochIntervals[epoch][int32(intervalIndex)] == nil || tickNumber > lastQuorumDataPerEpochIntervals[epoch][int32(intervalIndex)].QuorumTickStructure.TickNumber {
+			lastQuorumDataPerEpochIntervals[epoch][int32(intervalIndex)] = &qtd
 		}
 
 		qtdV2 := protobuff.QuorumTickDataStored{
@@ -141,18 +166,24 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 
 	}
 
-	for epoch, lastTickQuorumTickData := range lastEpochTickQuorumData {
-		key := store.AssembleKey(store.LastTickQuorumDataPerEpoch, epoch)
+	for epoch, intervalMap := range lastQuorumDataPerEpochIntervals {
 
-		marshalled, err := proto.Marshal(lastTickQuorumTickData)
-		if err != nil {
-			return errors.Wrapf(err, "marshalling epoch lastTick quorum data for epoch %d", epoch)
+		lastTickQuorumDataPerEpochIntervals := protobuff.LastTickQuorumDataPerEpochIntervals{
+			QuorumDataPerInterval: intervalMap,
 		}
 
-		err = batch.Set(key, marshalled, nil)
+		key := store.AssembleKey(store.LastTickQuorumDataPerEpochInterval, epoch)
+
+		value, err := proto.Marshal(&lastTickQuorumDataPerEpochIntervals)
+		if err != nil {
+			return errors.Wrapf(err, "serializing last quorum data per epoch intervals for epoch %d", epoch)
+		}
+
+		err = batch.Set(key, value, nil)
 		if err != nil {
 			return errors.Wrap(err, "setting data in batch")
 		}
+
 	}
 
 	err = batch.Commit(pebble.Sync)
@@ -161,4 +192,13 @@ func migrateQuorumDataV2(from, to *pebble.DB, settings Settings) error {
 	}
 
 	return nil
+}
+
+func findIntervalIndexForTick(tickNumber uint32, intervals []*protobuff.ProcessedTickInterval) int {
+	for index, interval := range intervals {
+		if interval.InitialProcessedTick <= tickNumber && tickNumber <= interval.LastProcessedTick {
+			return index
+		}
+	}
+	return -1
 }

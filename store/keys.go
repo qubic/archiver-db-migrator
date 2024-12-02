@@ -7,21 +7,21 @@ const UpperBoundTransaction = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 const UpperBoundIdentity = "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
 
 const (
-	TickData                     = 0x00
-	QuorumData                   = 0x01
-	ComputorList                 = 0x02
-	Transaction                  = 0x03
-	LastProcessedTick            = 0x04
-	LastProcessedTickPerEpoch    = 0x05
-	SkippedTicksInterval         = 0x06
-	IdentityTransferTransactions = 0x07
-	ChainDigest                  = 0x08
-	ProcessedTickIntervals       = 0x09
-	TickTransactionsStatus       = 0x10
-	TransactionStatus            = 0x11
-	StoreDigest                  = 0x12
-	EmptyTicksPerEpoch           = 0x13
-	LastTickQuorumDataPerEpoch   = 0x14
+	TickData                           = 0x00
+	QuorumData                         = 0x01
+	ComputorList                       = 0x02
+	Transaction                        = 0x03
+	LastProcessedTick                  = 0x04
+	LastProcessedTickPerEpoch          = 0x05
+	SkippedTicksInterval               = 0x06
+	IdentityTransferTransactions       = 0x07
+	ChainDigest                        = 0x08
+	ProcessedTickIntervals             = 0x09
+	TickTransactionsStatus             = 0x10
+	TransactionStatus                  = 0x11
+	StoreDigest                        = 0x12
+	EmptyTicksPerEpoch                 = 0x13
+	LastTickQuorumDataPerEpochInterval = 0x14
 )
 
 type IDType interface {
