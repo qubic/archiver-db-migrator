@@ -44,8 +44,9 @@ func run() error {
 			OldPath        string `conf:"default:./storage/old"`
 			OldCompression string `conf:"default:Snappy"`
 
-			NewPath        string `conf:"default:./storage/new/zstd"`
-			NewCompression string `conf:"default:Zstd"`
+			NewPath             string `conf:"default:./storage/new/zstd"`
+			NewCompression      string `conf:"default:Zstd"`
+			NewBetterCompaction bool   `conf:"default:false"`
 		}
 	}
 
@@ -77,13 +78,13 @@ func run() error {
 
 	println("Migrator started")
 
-	oldDB, err := createDBFromConfig(config.Database.OldPath, config.Database.OldCompression)
+	oldDB, err := createDBFromConfig(config.Database.OldPath, config.Database.OldCompression, config.Database.NewBetterCompaction)
 	if err != nil {
 		return errors.Wrap(err, "creating old db")
 	}
 	defer oldDB.Close()
 
-	newDB, err := createDBFromConfig(config.Database.NewPath, config.Database.NewCompression)
+	newDB, err := createDBFromConfig(config.Database.NewPath, config.Database.NewCompression, config.Database.NewBetterCompaction)
 	if err != nil {
 		return errors.Wrap(err, "creating new db")
 	}
@@ -226,7 +227,7 @@ func run() error {
 	return nil
 }
 
-func createDBFromConfig(path, compressionType string) (*pebble.DB, error) {
+func createDBFromConfig(path, compressionType string, enableBetterCompaction bool) (*pebble.DB, error) {
 
 	switch compressionType {
 
@@ -234,7 +235,7 @@ func createDBFromConfig(path, compressionType string) (*pebble.DB, error) {
 		return store.CreateDBWithDefaultOptions(path)
 
 	case "Zstd":
-		return store.CreateDBWithZstdCompression(path)
+		return store.CreateDBWithZstdCompression(path, enableBetterCompaction)
 
 	default:
 		return nil, errors.New("unknown compression type")
