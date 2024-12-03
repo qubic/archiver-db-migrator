@@ -9,7 +9,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.2
 	github.com/golang/protobuf v1.5.4
 	github.com/pkg/errors v0.9.1
-	github.com/qubic/go-archiver v0.7.6-0.20241202123147-fc26655a864b
+	github.com/qubic/go-archiver v0.9.0
 )
 
 require (
