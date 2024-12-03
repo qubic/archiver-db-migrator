@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"github.com/cockroachdb/pebble"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -39,7 +40,9 @@ func ExportLastTickQuorumDataPerEpochInterval(from, to *pebble.DB) error {
 
 	for _, epochIntervals := range processedTickIntervals {
 
-		var lastTickQuorumDataPerEpochIntervals protobuff.LastTickQuorumDataPerEpochIntervals
+		lastTickQuorumDataPerEpochIntervals := protobuff.LastTickQuorumDataPerEpochIntervals{
+			QuorumDataPerInterval: make(map[int32]*protobuff.QuorumTickData),
+		}
 
 		epoch := epochIntervals.Epoch
 
@@ -72,10 +75,11 @@ func ImportLastTickDataPerEpochInterval(from, to *pebble.DB) error {
 	fromStore := archivestore.NewPebbleStore(from, nil)
 	toStore := archivestore.NewPebbleStore(to, nil)
 
-	epochs, err := fromStore.GetLastProcessedTicksPerEpoch(nil)
+	epochs, err := toStore.GetLastProcessedTicksPerEpoch(nil)
 	if err != nil {
 		return errors.Wrap(err, "getting epoch list from database")
 	}
+	fmt.Printf("%v\n", epochs)
 
 	for epoch, _ := range epochs {
 		lastQuorumDataPerEpochInterval, err := fromStore.GetLastTickQuorumDataListPerEpochInterval(epoch)

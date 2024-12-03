@@ -100,6 +100,7 @@ func run() error {
 		if err != nil {
 			return errors.Wrap(err, "exporting last tick quorum data per epoch interval")
 		}
+		return nil
 	}
 
 	if config.Export.ImportLastTickQuorumDataFromNewFormat {
@@ -107,6 +108,7 @@ func run() error {
 		if err != nil {
 			return errors.Wrap(err, "importing last tick quorum data per epoch interval")
 		}
+		return nil
 	}
 
 	if config.Migration.TickData {
