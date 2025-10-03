@@ -2,6 +2,7 @@ package migration
 
 import (
 	"encoding/binary"
+
 	"github.com/cockroachdb/pebble"
 	"github.com/pkg/errors"
 	"github.com/qubic/archiver-db-migrator/store"
