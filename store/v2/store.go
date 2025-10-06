@@ -11,7 +11,7 @@ type ArchiverEpochStoreV2 struct {
 }
 
 func NewArchiverEpochStoreV2(directory string, epoch uint32) (*ArchiverEpochStoreV2, error) {
-	store, err := db.CreateStore(directory, uint16(epoch))
+	store, err := db.CreateStore(directory, uint16(epoch), false)
 	if err != nil {
 		return nil, fmt.Errorf("creating archiver v2 database: %w", err)
 	}

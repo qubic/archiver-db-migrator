@@ -36,10 +36,12 @@ func (m *Migrator) MigrateEpochMetadata(epoch uint32, newStore *v2.ArchiverEpoch
 		return fmt.Errorf("migrating tick range last tick quorum data for epoch %d: %w", epoch, err)
 	}
 
-	log.Println("Migrating target tick vote signature...")
-	err = m.MigrateTargetTickVoteSignature(epoch, newStore)
-	if err != nil {
-		return fmt.Errorf("migrating target tick vote signature for epoch %d: %w", epoch, err)
+	if epoch > 158 {
+		log.Println("Migrating target tick vote signature...")
+		err = m.MigrateTargetTickVoteSignature(epoch, newStore)
+		if err != nil {
+			return fmt.Errorf("migrating target tick vote signature for epoch %d: %w", epoch, err)
+		}
 	}
 
 	log.Println("Done.")

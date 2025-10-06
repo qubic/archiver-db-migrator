@@ -8,7 +8,7 @@ require (
 	github.com/cockroachdb/pebble/v2 v2.1.0
 	github.com/golang/protobuf v1.5.4
 	github.com/qubic/go-archiver v0.12.4
-	github.com/qubic/go-archiver-v2 v0.0.10
+	github.com/qubic/go-archiver-v2 v0.0.11
 	github.com/schollz/progressbar/v3 v3.18.0
 )
 
