@@ -58,6 +58,10 @@ func (m *Migrator) migrateTickDataRange(tickRange v1.TickRange, newStore *v2.Arc
 			return nil, 0, fmt.Errorf("unmarshaling tick data for tick %d in range %v: %w", tickNumber, tickRange, err)
 		}
 
+		if tickDataV1.TickNumber != 0 && tickNumber != tickDataV1.TickNumber {
+			return nil, 0, fmt.Errorf("tick data tick number %d does not match key tick number %d", tickDataV1.TickNumber, tickNumber)
+		}
+
 		_, exists := txsPerTick[tickDataV1.TickNumber]
 		if !exists {
 			txsPerTick[tickDataV1.TickNumber] = []string{}

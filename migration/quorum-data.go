@@ -55,6 +55,10 @@ func (m *Migrator) migrateQuorumDataRange(tickRange v1.TickRange, newStore *v2.A
 			return fmt.Errorf("unmarshaling quorum data for tick %d in range %v: %w", tickNumber, tickRange, err)
 		}
 
+		if quorumDataV1.QuorumTickStructure.TickNumber != 0 && tickNumber != quorumDataV1.QuorumTickStructure.TickNumber {
+			return fmt.Errorf("quorum data tick number %d does not match key tick number %d", quorumDataV1.QuorumTickStructure.TickNumber, tickNumber)
+		}
+
 		quorumDiffPerComputorV2 := make(map[uint32]*protoV2.QuorumDiffStored)
 		for index, diff := range quorumDataV1.QuorumDiffPerComputor {
 			quorumDiffPerComputorV2[index] = &protoV2.QuorumDiffStored{
