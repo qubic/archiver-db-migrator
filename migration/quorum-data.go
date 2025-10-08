@@ -42,7 +42,7 @@ func (m *Migrator) migrateQuorumDataRange(tickRange v1.TickRange, newStore *v2.A
 		_ = bar.Add(1)
 
 		key := iter.Key()
-		tickNumber := binary.BigEndian.Uint32(key[1:])
+		tickNumber := binary.BigEndian.Uint32(key[len(key)-4:])
 
 		value, err := iter.ValueAndErr()
 		if err != nil {
@@ -83,7 +83,7 @@ func (m *Migrator) migrateQuorumDataRange(tickRange v1.TickRange, newStore *v2.A
 			return fmt.Errorf("marshaling quorum data v2 for tick %d in range %v: %w", tickNumber, tickRange, err)
 		}
 
-		err = batch.Set(migratorStore.AssembleKey(archiverV2Store.QuorumData, quorumDataV2.QuorumTickStructure.TickNumber), data, nil)
+		err = batch.Set(migratorStore.AssembleKey(archiverV2Store.QuorumData, tickNumber), data, nil)
 		if err != nil {
 			return fmt.Errorf("setting quorum data v2 for tick %d in range %v: %w", tickNumber, tickRange, err)
 		}

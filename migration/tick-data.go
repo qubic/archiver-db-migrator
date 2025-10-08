@@ -45,7 +45,7 @@ func (m *Migrator) migrateTickDataRange(tickRange v1.TickRange, newStore *v2.Arc
 		_ = bar.Add(1)
 
 		key := iter.Key()
-		tickNumber := binary.BigEndian.Uint32(key[1:]) // TODO: for some reason this is 0 all the time.
+		tickNumber := binary.BigEndian.Uint32(key[len(key)-4:])
 
 		value, err := iter.ValueAndErr()
 		if err != nil {
@@ -83,7 +83,7 @@ func (m *Migrator) migrateTickDataRange(tickRange v1.TickRange, newStore *v2.Arc
 			return nil, 0, fmt.Errorf("marshaling tick data v2 for tick %d in range %v: %w", tickNumber, tickRange, err)
 		}
 
-		err = batch.Set(migratorStore.AssembleKey(archiverV2Store.TickData, tickDataV2.TickNumber), data, nil)
+		err = batch.Set(migratorStore.AssembleKey(archiverV2Store.TickData, tickNumber), data, nil)
 		if err != nil {
 			return nil, 0, fmt.Errorf("setting tick data v2 for tick %d in range %v: %w", tickNumber, tickRange, err)
 		}
