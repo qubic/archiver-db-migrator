@@ -2,13 +2,14 @@ package migration
 
 import (
 	"fmt"
+	"runtime"
+
 	"github.com/cockroachdb/pebble"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/qubic/archiver-db-migrator/store"
 	"github.com/qubic/go-archiver/protobuff"
 	archivestore "github.com/qubic/go-archiver/store"
-	"runtime"
 )
 
 const maxArraySize = 20000
