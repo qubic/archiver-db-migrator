@@ -9,6 +9,10 @@
 4. To migrate a range of epochs run `./archiver-db-migrator --database-path-old <old-db-dir> --database-path-new <new-db-dir> --migrate-epoch-range-start <epoch-number> --migrate-epoch-range-end <epoch-number>`.
 5. To migrate all the epochs run `/archiver-db-migrator --database-path-old <old-db-dir> --database-path-new <new-db-dir> --migrate-all true`
 
+> After migration, the data may not be fully organized, resulting in a larger storage footprint.  
+> You can add the `--database-compact-after-migrate` flag to force database compaction at migration time.  
+> Note that this may increase the migration time significantly.
+
 ```
 archiver-db-migrator [options...] [arguments...]
 
