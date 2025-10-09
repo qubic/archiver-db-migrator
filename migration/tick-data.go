@@ -28,7 +28,7 @@ func (m *Migrator) migrateTickDataRange(tickRange v1.TickRange, newStore *v2.Arc
 	iter, err := m.oldStore.GetDB().NewIter(
 		&pebbleV1.IterOptions{
 			LowerBound: migratorStore.AssembleKey(archiverV1Store.TickData, tickRange.Start),
-			UpperBound: migratorStore.AssembleKey(archiverV1Store.TickData, tickRange.End),
+			UpperBound: migratorStore.AssembleKey(archiverV1Store.TickData, tickRange.End+1),
 		})
 	if err != nil {
 		return nil, 0, fmt.Errorf("creating iterator for tick data range %v: %w", tickRange, err)

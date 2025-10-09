@@ -25,7 +25,7 @@ func (m *Migrator) migrateQuorumDataRange(tickRange v1.TickRange, newStore *v2.A
 	iter, err := m.oldStore.GetDB().NewIter(
 		&pebbleV1.IterOptions{
 			LowerBound: migratorStore.AssembleKey(archiverV1Store.QuorumData, tickRange.Start),
-			UpperBound: migratorStore.AssembleKey(archiverV1Store.QuorumData, tickRange.End),
+			UpperBound: migratorStore.AssembleKey(archiverV1Store.QuorumData, tickRange.End+1),
 		})
 	if err != nil {
 		return fmt.Errorf("creating iterator for quorum data range %v: %w", tickRange, err)
