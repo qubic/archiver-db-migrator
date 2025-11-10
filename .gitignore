@@ -1,3 +1,7 @@
 
 # executable
 archiver-db-migrator
+
+# intellij
+.idea
+
