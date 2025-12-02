@@ -13,7 +13,48 @@ import (
 	archiverV2Store "github.com/qubic/go-archiver-v2/db"
 	protoV2 "github.com/qubic/go-archiver-v2/protobuf"
 	"github.com/schollz/progressbar/v3"
+	"golang.org/x/sync/errgroup"
 )
+
+func (m *Migrator) processTxStatusInParallel(txList []string, ttsV2 *protoV2.TickTransactionsStatus, batch *pebbleV2.Batch) error {
+	var errorGroup errgroup.Group
+	for _, tick := range txList {
+		errorGroup.Go(func() error {
+			txStatus, err := m.processTxStatus(tick, batch)
+			if err == nil && txStatus != nil {
+				m.lock.Lock() // for appending
+				defer m.lock.Unlock()
+				ttsV2.Transactions = append(ttsV2.Transactions, txStatus)
+			}
+			return err
+		})
+	}
+	return errorGroup.Wait()
+}
+
+func (m *Migrator) processTxStatus(hash string, batch *pebbleV2.Batch) (*protoV2.TransactionStatus, error) {
+	txStatusV1, err := m.oldStore.ArchiverStore.GetTransactionStatus(context.Background(), hash)
+	if err != nil {
+		return nil, fmt.Errorf("getting transaction status for tx %s: %w", hash, err)
+	}
+
+	txStatusV2 := protoV2.TransactionStatus{
+		TxId:      txStatusV1.TxId,
+		MoneyFlew: txStatusV1.MoneyFlew,
+	}
+
+	data, err := proto.Marshal(&txStatusV2)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling transaction status v2 for tx %s: %w", hash, err)
+	}
+
+	err = batch.Set(migratorStore.AssembleKey(archiverV2Store.TransactionStatus, hash), data, nil)
+	if err != nil {
+		return nil, fmt.Errorf("setting transaction status for tx %s in batch: %w", hash, err)
+	}
+
+	return &txStatusV2, nil
+}
 
 func (m *Migrator) migrateTransactionsStatusList(txIdsPerTick map[uint32][]string, newStore *v2.ArchiverEpochStoreV2) error {
 
@@ -27,44 +68,39 @@ func (m *Migrator) migrateTransactionsStatusList(txIdsPerTick map[uint32][]strin
 	for tickNumber, txs := range txIdsPerTick {
 
 		var ttsV2 protoV2.TickTransactionsStatus
-
 		_ = bar.Add(1)
 
-		for _, txId := range txs {
-
-			txStatusV1, err := m.oldStore.ArchiverStore.GetTransactionStatus(context.Background(), txId)
+		lastIndex := len(txs) - 1
+		if lastIndex < m.numWorkers {
+			err := m.processTxStatusInParallel(txs, &ttsV2, batch)
 			if err != nil {
-				return fmt.Errorf("getting transaction status for tx %s: %w", txId, err)
+				return fmt.Errorf("processing tx status in parallel: %w", err)
 			}
-
-			txStatusV2 := protoV2.TransactionStatus{
-				TxId:      txStatusV1.TxId,
-				MoneyFlew: txStatusV1.MoneyFlew,
-			}
-
-			ttsV2.Transactions = append(ttsV2.Transactions, &txStatusV2)
-
-			data, err := proto.Marshal(&txStatusV2)
-			if err != nil {
-				return fmt.Errorf("marshaling transaction status v2 for tx %s: %w", txId, err)
-			}
-
-			err = batch.Set(migratorStore.AssembleKey(archiverV2Store.TransactionStatus, txId), data, nil)
-			if err != nil {
-				return fmt.Errorf("setting transaction status for tx %s in batch: %w", txId, err)
-			}
-			counter++
-
-			if counter >= m.batchSize {
-				err := batch.Commit(pebbleV2.Sync)
-				if err != nil {
-					return fmt.Errorf("committing batch while migrating transactions status list: %w", err)
+			counter += len(txs)
+		} else {
+			var nextTransactions = make([]string, 0, m.numWorkers)
+			for i, hash := range txs {
+				nextTransactions = append(nextTransactions, hash)
+				if len(nextTransactions) >= m.numWorkers || i == lastIndex {
+					err := m.processTxStatusInParallel(nextTransactions, &ttsV2, batch)
+					if err != nil {
+						return fmt.Errorf("processing tx status in parallel: %w", err)
+					}
+					counter += len(nextTransactions)
+					nextTransactions = make([]string, 0, m.numWorkers) // reset
 				}
-
-				batch.Reset()
-				runtime.GC()
-				counter = 0
 			}
+		}
+
+		if counter >= m.batchSize {
+			err := batch.Commit(pebbleV2.Sync)
+			if err != nil {
+				return fmt.Errorf("committing batch while migrating transactions status list: %w", err)
+			}
+
+			batch.Reset()
+			runtime.GC()
+			counter = 0
 		}
 
 		data, err := proto.Marshal(&ttsV2)

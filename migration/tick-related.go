@@ -52,6 +52,7 @@ func (m *Migrator) MigrateTickData(epochMetadata v1.EpochMetadata, newStore *v2.
 			return fmt.Errorf("migrating tick data range %v for epoch %d: %w", tickRange, epochMetadata.Epoch, err)
 		}
 
+		// log.Printf("Skipping migration of transactions: %d", txCount)
 		err = m.migrateTransactionsList(txIds, txCount, newStore)
 		if err != nil {
 			return fmt.Errorf("migrating transactions list for tick range %v for epoch %d: %w", tickRange, epochMetadata.Epoch, err)

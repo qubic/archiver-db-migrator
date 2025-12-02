@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 
 	v1 "github.com/qubic/archiver-db-migrator/store/v1"
 	v2 "github.com/qubic/archiver-db-migrator/store/v2"
@@ -14,14 +15,17 @@ type Migrator struct {
 	newStorePath        string
 	batchSize           int
 	compactAfterMigrate bool
+	numWorkers          int
+	lock                sync.Mutex
 }
 
-func NewMigrator(oldStore *v1.ArchiverStoreV1, newStorePath string, batchSize int, compactAfterMigrate bool) *Migrator {
+func NewMigrator(oldStore *v1.ArchiverStoreV1, newStorePath string, batchSize int, compactAfterMigrate bool, numWorkers int) *Migrator {
 	return &Migrator{
 		oldStore:            oldStore,
 		newStorePath:        newStorePath,
 		batchSize:           batchSize,
 		compactAfterMigrate: compactAfterMigrate,
+		numWorkers:          numWorkers,
 	}
 }
 

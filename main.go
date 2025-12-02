@@ -36,6 +36,7 @@ func run() error {
 				End   uint32 `conf:"default:0"`
 			}
 		}
+		NumWorkers int `conf:"default:10"`
 	}
 
 	help, err := conf.Parse(confPrefix, &config)
@@ -47,6 +48,12 @@ func run() error {
 		return fmt.Errorf("parsing config: %w", err)
 	}
 
+	out, err := conf.String(&config)
+	if err != nil {
+		return fmt.Errorf("generating config for output: %w", err)
+	}
+	log.Printf("main: Config :\n%v\n", out)
+
 	oldStore, err := v1.NewArchiverStoreV1(config.Database.PathOld)
 	if err != nil {
 		return fmt.Errorf("opening old archiver store v1: %w", err)
@@ -54,7 +61,7 @@ func run() error {
 
 	defer oldStore.Close()
 
-	migrator := migration.NewMigrator(oldStore, config.Database.PathNew, config.BatchSize, config.Database.CompactAfterMigrate)
+	migrator := migration.NewMigrator(oldStore, config.Database.PathNew, config.BatchSize, config.Database.CompactAfterMigrate, config.NumWorkers)
 
 	if config.Migrate.All {
 		log.Println("Starting migration of all epochs")
