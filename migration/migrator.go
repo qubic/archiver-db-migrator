@@ -14,14 +14,16 @@ type Migrator struct {
 	newStorePath        string
 	batchSize           int
 	compactAfterMigrate bool
+	skipMissingTxStatus bool
 }
 
-func NewMigrator(oldStore *v1.ArchiverStoreV1, newStorePath string, batchSize int, compactAfterMigrate bool) *Migrator {
+func NewMigrator(oldStore *v1.ArchiverStoreV1, newStorePath string, batchSize int, compactAfterMigrate bool, skipMissingTxStatus bool) *Migrator {
 	return &Migrator{
 		oldStore:            oldStore,
 		newStorePath:        newStorePath,
 		batchSize:           batchSize,
 		compactAfterMigrate: compactAfterMigrate,
+		skipMissingTxStatus: skipMissingTxStatus,
 	}
 }
 
