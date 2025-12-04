@@ -41,9 +41,9 @@ func (m *Migrator) migrateTransactionsStatusList(txIdsPerTick map[uint32][]strin
 				moneyFlew = txStatusV1.MoneyFlew
 			} else {
 				if m.skipMissingTxStatus && errors.Is(err, store.ErrNotFound) {
-					log.Printf("[WARN] missing tx status for transaction [%v].", txId)
+					log.Printf("[WARN] ignoring missing tx status for transaction [%v] in tick [%d].", txId, tickNumber)
 				} else {
-					return fmt.Errorf("getting transaction status for tx %s: %w", txId, err)
+					return fmt.Errorf("getting transaction status for tx %s in tick %d: %w", txId, tickNumber, err)
 				}
 			}
 
