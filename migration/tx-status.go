@@ -2,7 +2,9 @@ package migration
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"runtime"
 
 	pebbleV2 "github.com/cockroachdb/pebble/v2"
@@ -12,6 +14,7 @@ import (
 	v2 "github.com/qubic/archiver-db-migrator/store/v2"
 	archiverV2Store "github.com/qubic/go-archiver-v2/db"
 	protoV2 "github.com/qubic/go-archiver-v2/protobuf"
+	"github.com/qubic/go-archiver/store"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -32,14 +35,21 @@ func (m *Migrator) migrateTransactionsStatusList(txIdsPerTick map[uint32][]strin
 
 		for _, txId := range txs {
 
+			var moneyFlew bool
 			txStatusV1, err := m.oldStore.ArchiverStore.GetTransactionStatus(context.Background(), txId)
-			if err != nil {
-				return fmt.Errorf("getting transaction status for tx %s: %w", txId, err)
+			if err == nil { // default case
+				moneyFlew = txStatusV1.MoneyFlew
+			} else {
+				if m.skipMissingTxStatus && errors.Is(err, store.ErrNotFound) {
+					log.Printf("[WARN] ignoring missing tx status for transaction [%v] in tick [%d].", txId, tickNumber)
+				} else {
+					return fmt.Errorf("getting transaction status for tx %s in tick %d: %w", txId, tickNumber, err)
+				}
 			}
 
 			txStatusV2 := protoV2.TransactionStatus{
-				TxId:      txStatusV1.TxId,
-				MoneyFlew: txStatusV1.MoneyFlew,
+				TxId:      txId,
+				MoneyFlew: moneyFlew,
 			}
 
 			ttsV2.Transactions = append(ttsV2.Transactions, &txStatusV2)
