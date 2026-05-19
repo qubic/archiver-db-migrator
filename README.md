@@ -4,8 +4,8 @@ This tool allows for migrating the monolithical [Archiver V1](https://github.com
 
 ## Preqreuisites and building
 This software is not released as a binary, only as source code which you will need to build in order to use.  
-Generally all you need to build this project is the Go toolchain on version go1.25.x.
-In case your Go version is 1.26 or newer, you will need to export / set the Go toolchain version enviroment variable. See below
+Generally all you need to build this project is the Go toolchain on version go1.25.x.  
+In case your Go version is 1.26 or newer, you will need to export / set the Go toolchain version enviroment variable. See below  
 
 To build this tool all you need to do is:
 1. Clone this repository and change directory (cd) into the cloned project directory. 
