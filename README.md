@@ -1,3 +1,18 @@
+# Archiver V1 to V2 migrator
+
+This tool allows for migrating the monolithical [Archiver V1](https://github.com/qubic/go-archiver) database to the per-epoch and simplified format for use with [Archiver V2](https://github.com/qubic/go-archiver-v2).
+
+## Preqreuisites and building
+This software is not released as a binary, only as source code which you will need to build in order to use.  
+Generally all you need to build this project is the Go toolchain on version go1.25.x.
+In case your Go version is 1.26 or newer, you will need to export / set the Go toolchain version enviroment variable. See below
+
+To build this tool all you need to do is:
+1. Clone this repository and change directory (cd) into the cloned project directory. 
+2. Run `go mod tidy && go mod build -v`.  
+   - Alternatively, if your Go version >= 1.26, you may run `GOTOOLCHAIN=go1.25.3+auto go mod tidy` followed by `GOTOOLCHAIN=go1.25.3+auto go build -v`
+3. You may continue to follow the following steps for using the software.
+ 
  ## Steps for migrating the archiver database v1 to v2
  
 
@@ -11,7 +26,7 @@
 
 > After migration, the data may not be fully organized, resulting in a larger storage footprint.  
 > You can add the `--database-compact-after-migrate` flag to force database compaction at migration time.  
-> Note that this may increase the migration time significantly.
+> Note that this may increase the migration time significantly depending on database size.
 
 ```
 archiver-db-migrator [options...] [arguments...]
